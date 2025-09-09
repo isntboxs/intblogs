@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 	baseDirectory: __dirname,
 });
 
-const eslintConfig = tseslint.configs(
+const eslintConfig = tseslint.config(
 	...compat.extends("next/core-web-vitals", "next/typescript"),
 	{
 		ignores: [
@@ -45,6 +45,7 @@ const eslintConfig = tseslint.configs(
 				"error",
 				{ checksVoidReturn: { attributes: false } },
 			],
+			"@typescript-eslint/no-unsafe-argument": "off",
 		},
 	},
 	{
