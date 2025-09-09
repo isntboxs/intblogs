@@ -1,0 +1,19 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Story {
+  id      String @id @default(cuid())
+  title   String
+  content String
+
+  @@map("stories")
+}
