@@ -12,9 +12,27 @@ export const authConfig = {
 	database: prismaAdapter(db, {
 		provider: "postgresql",
 	}),
+	account: {
+		accountLinking: {
+			enabled: true,
+			trustedProviders: ["github", "google"],
+		},
+	},
 	emailAndPassword: {
 		enabled: true,
 	},
 	plugins: [openAPI(), username(), nextCookies()],
+	socialProviders: {
+		github: {
+			enabled: true,
+			clientId: env.GITHUB_CLIENT_ID,
+			clientSecret: env.GITHUB_CLIENT_SECRET,
+		},
+		google: {
+			enabled: true,
+			clientId: env.GOOGLE_CLIENT_ID,
+			clientSecret: env.GOOGLE_CLIENT_SECRET,
+		},
+	},
 	secret: env.BETTER_AUTH_SECRET,
 } satisfies BetterAuthOptions;
