@@ -1,6 +1,5 @@
-"use client";
-
-import { useState } from "react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
@@ -27,10 +26,13 @@ import {
 
 interface Props {
 	type?: "sign-in" | "sign-up";
+	callbackUrl: string;
 }
 
-export const AuthForm = ({ type = "sign-in" }: Props) => {
-	const [loading, setLoading] = useState<boolean>(false);
+export const AuthForm = ({ type = "sign-in", callbackUrl }: Props) => {
+	const [isPending, startTransition] = useTransition();
+
+	const router = useRouter();
 
 	const formSignIn = useForm<SignInSchema>({
 		resolver: zodResolver(signInSchema),
@@ -54,52 +56,52 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 	});
 
 	const handleSubmitSignIn = async (data: SignInSchema) => {
-		await authClient.signIn.username({
-			username: data.username,
-			password: data.password,
-			callbackURL: "/",
-			fetchOptions: {
-				onRequest: () => {
-					setLoading(true);
-				},
+		startTransition(async () => {
+			await authClient.signIn.username({
+				username: data.username,
+				password: data.password,
+				fetchOptions: {
+					onSuccess: () => {
+						toast.success("Signed in successfully!", {
+							description: "You will be redirected.",
+						});
 
-				onSuccess: () => {
-					setLoading(false);
-				},
+						router.push(callbackUrl);
+					},
 
-				onError: (ctx) => {
-					setLoading(false);
-					toast.error(`Oops, ${type} failed`, {
-						description: ctx.error.message,
-					});
+					onError: (ctx) => {
+						toast.error(`Oops, ${type} failed`, {
+							description: ctx.error.message,
+						});
+					},
 				},
-			},
+			});
 		});
 	};
 
 	const handleSubmitSignUp = async (data: SignUpSchema) => {
-		await authClient.signUp.email({
-			name: data.name,
-			username: data.username,
-			email: data.email,
-			password: data.password,
-			callbackURL: "/",
-			fetchOptions: {
-				onRequest: () => {
-					setLoading(true);
-				},
+		startTransition(async () => {
+			await authClient.signUp.email({
+				name: data.name,
+				username: data.username,
+				email: data.email,
+				password: data.password,
+				fetchOptions: {
+					onSuccess: () => {
+						toast.success("Signed up successfully!", {
+							description: "You will be redirected.",
+						});
 
-				onSuccess: () => {
-					setLoading(false);
-				},
+						router.push(callbackUrl);
+					},
 
-				onError: (ctx) => {
-					setLoading(false);
-					toast.error(`Oops, ${type} failed`, {
-						description: ctx.error.message,
-					});
+					onError: (ctx) => {
+						toast.error(`Oops, ${type} failed`, {
+							description: ctx.error.message,
+						});
+					},
 				},
-			},
+			});
 		});
 	};
 
@@ -140,8 +142,13 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 						/>
 					</div>
 
-					<Button type="submit" size="lg" className="w-full" disabled={loading}>
-						{loading ? (
+					<Button
+						type="submit"
+						size="lg"
+						className="w-full"
+						disabled={isPending}
+					>
+						{isPending ? (
 							<>
 								<Loader2Icon className="mr-2 size-4 animate-spin" /> Signing
 								in...
@@ -233,13 +240,13 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 					/>
 				</div>
 
-				<Button type="submit" size="lg" className="w-full" disabled={loading}>
-					{loading ? (
+				<Button type="submit" size="lg" className="w-full" disabled={isPending}>
+					{isPending ? (
 						<>
-							<Loader2Icon className="mr-2 size-4 animate-spin" /> Signing in...
+							<Loader2Icon className="size-4 animate-spin" /> Signing up...
 						</>
 					) : (
-						"Sign In"
+						"Sign Up"
 					)}
 				</Button>
 			</form>

@@ -1,7 +1,7 @@
 import { type BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { openAPI, username } from "better-auth/plugins";
+import { lastLoginMethod, openAPI, username } from "better-auth/plugins";
 
 import { db } from "@/db";
 import { env } from "@/utils/env";
@@ -28,6 +28,7 @@ export const authConfig = {
 			maxUsernameLength: 30,
 		}),
 		nextCookies(),
+		lastLoginMethod(),
 	],
 	socialProviders: {
 		github: {

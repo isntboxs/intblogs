@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Loader2Icon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
@@ -29,6 +29,11 @@ const socialButtons = [
 
 export const AuthSocialButtons = ({ type = "sign-in" }: Props) => {
 	const [provider, setProvider] = useState<"github" | "google" | null>(null);
+	const [isHydrated, setIsHydrated] = useState(false);
+
+	useEffect(() => {
+		setIsHydrated(true);
+	}, []);
 
 	const handleProvider = async (provider: "github" | "google") => {
 		await authClient.signIn.social({
@@ -54,13 +59,13 @@ export const AuthSocialButtons = ({ type = "sign-in" }: Props) => {
 	};
 
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+		<div className="grid grid-cols-1 gap-4">
 			{socialButtons.map((button) => (
 				<Button
 					key={button.name}
 					variant="outline"
 					size="lg"
-					className="w-full text-center"
+					className="relative w-full text-center"
 					onClick={() => handleProvider(button.provider as "google" | "github")}
 					disabled={provider === button.provider}
 				>
@@ -70,11 +75,15 @@ export const AuthSocialButtons = ({ type = "sign-in" }: Props) => {
 						button.icon
 					)}
 
-					<span>
-						{type === "sign-in"
-							? `Continue with ${button.name}`
-							: `Sign up with ${button.name}`}
-					</span>
+					{type === "sign-in"
+						? `Continue with ${button.name}`
+						: `Sign up with ${button.name}`}
+
+					{isHydrated && authClient.isLastUsedLoginMethod(button.provider) && (
+						<span className="bg-primary text-primary-foreground absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 rotate-45 rounded-sm p-0.5 px-1 text-xs">
+							Last
+						</span>
+					)}
 				</Button>
 			))}
 		</div>
