@@ -1,3 +1,9 @@
+/**
+ * Layout wrapper for authentication pages that centers content inside a responsive container.
+ *
+ * @param children - React nodes to render inside the layout's inner container.
+ * @returns The layout's JSX element containing `children`.
+ */
 export default function AuthLayout({
 	children,
 }: {

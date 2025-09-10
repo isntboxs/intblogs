@@ -10,6 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth/client";
 
+/**
+ * Renders the onboarding page where a user chooses a username.
+ *
+ * The component displays a centered form with a username input and a submit button.
+ * On submit it validates the trimmed username is non-empty, shows an error toast if empty,
+ * and otherwise calls `authClient.updateUser({ username })`. On successful update it shows
+ * a success toast and navigates to the home route ("/"); on failure it shows an error toast.
+ * The submit button reflects an internal `loading` state while the update is in progress.
+ *
+ * @returns A React element containing the username onboarding form.
+ */
 export default function OnboardingPage() {
 	const [username, setUsername] = useState("");
 	const [loading, setLoading] = useState(false);

@@ -2,6 +2,18 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSessionAction } from "@/actions/get-session-action";
 
+/**
+ * Middleware that enforces authentication-related routing rules.
+ *
+ * Checks the current session and conditionally redirects requests:
+ * - Authenticated users without a username are redirected to `/onboarding` unless already on that path.
+ * - Authenticated users with a username are redirected to `/` when attempting to access `/onboarding` or `/sign-in`.
+ * - Unauthenticated requests to `/onboarding` are redirected to `/sign-in`.
+ *
+ * If no rule matches, the request is allowed to continue.
+ *
+ * @returns A NextResponse that either redirects to an appropriate route or calls `NextResponse.next()` to continue processing.
+ */
 export async function middleware(req: NextRequest) {
 	const { pathname } = req.nextUrl;
 
