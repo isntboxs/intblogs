@@ -39,7 +39,7 @@ export const AuthSocialButtons = ({ type = "sign-in" }: Props) => {
 					setProvider(provider);
 				},
 
-				onSuccess: () => {
+				onSuccess: async () => {
 					setProvider(null);
 				},
 
@@ -54,7 +54,7 @@ export const AuthSocialButtons = ({ type = "sign-in" }: Props) => {
 	};
 
 	return (
-		<div className="grid grid-cols-1 gap-4">
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			{socialButtons.map((button) => (
 				<Button
 					key={button.name}
