@@ -21,7 +21,14 @@ export const authConfig = {
 	emailAndPassword: {
 		enabled: true,
 	},
-	plugins: [openAPI(), username(), nextCookies()],
+	plugins: [
+		openAPI(),
+		username({
+			minUsernameLength: 3,
+			maxUsernameLength: 30,
+		}),
+		nextCookies(),
+	],
 	socialProviders: {
 		github: {
 			enabled: true,
