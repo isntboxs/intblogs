@@ -27,10 +27,15 @@ export async function middleware(req: NextRequest) {
 		}
 	}
 
+	// Unauthenticated user should not be able to access onboarding page
+	if (!session?.user && pathname.startsWith("/onboarding")) {
+		return NextResponse.redirect(new URL("/sign-in", req.url));
+	}
+
 	return NextResponse.next();
 }
 
 export const config = {
 	runtime: "nodejs",
-	matcher: ["/((?!api/|rcp/|_next/|_static/|_vercel|media/|[\w-]+\.\w+).*)"],
+	matcher: ["/((?!api/|rpc/|_next/|_static/|_vercel|media/|[\w-]+\.\w+).*)"],
 };

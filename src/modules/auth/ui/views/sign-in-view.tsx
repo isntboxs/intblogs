@@ -37,7 +37,7 @@ export const SignInView = () => {
 				<AuthForm />
 
 				<p className="text-muted-foreground text-center text-xs italic">
-					By continuing, you agreeing to our{" "}
+					By continuing, you agree to our{" "}
 					<Link
 						href="/terms"
 						className="text-primary hover:text-primary/80 transition-all duration-300 ease-in-out"
