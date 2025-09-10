@@ -18,7 +18,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/client";
-import { signInSchema, type SignInSchema } from "@/modules/auth/schemas";
+import {
+	signInSchema,
+	signUpSchema,
+	type SignInSchema,
+	type SignUpSchema,
+} from "@/modules/auth/schemas";
 
 interface Props {
 	type?: "sign-in" | "sign-up";
@@ -27,7 +32,7 @@ interface Props {
 export const AuthForm = ({ type = "sign-in" }: Props) => {
 	const [loading, setLoading] = useState<boolean>(false);
 
-	const form = useForm<SignInSchema>({
+	const formSignIn = useForm<SignInSchema>({
 		resolver: zodResolver(signInSchema),
 		defaultValues: {
 			username: "",
@@ -36,7 +41,19 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 		mode: "onChange",
 	});
 
-	const handleSubmit = async (data: SignInSchema) => {
+	const formSignUp = useForm<SignUpSchema>({
+		resolver: zodResolver(signUpSchema),
+		defaultValues: {
+			name: "",
+			username: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+		},
+		mode: "onChange",
+	});
+
+	const handleSubmitSignIn = async (data: SignInSchema) => {
 		await authClient.signIn.username({
 			username: data.username,
 			password: data.password,
@@ -60,16 +77,42 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 		});
 	};
 
+	const handleSubmitSignUp = async (data: SignUpSchema) => {
+		await authClient.signUp.email({
+			name: data.name,
+			username: data.username,
+			email: data.email,
+			password: data.password,
+			callbackURL: "/",
+			fetchOptions: {
+				onRequest: () => {
+					setLoading(true);
+				},
+
+				onSuccess: () => {
+					setLoading(false);
+				},
+
+				onError: (ctx) => {
+					setLoading(false);
+					toast.error(`Oops, ${type} failed`, {
+						description: ctx.error.message,
+					});
+				},
+			},
+		});
+	};
+
 	if (type === "sign-in") {
 		return (
-			<Form {...form}>
+			<Form {...formSignIn}>
 				<form
-					onSubmit={form.handleSubmit(handleSubmit)}
+					onSubmit={formSignIn.handleSubmit(handleSubmitSignIn)}
 					className="grid grid-cols-1 gap-y-6"
 				>
 					<div className="space-y-4">
 						<FormField
-							control={form.control}
+							control={formSignIn.control}
 							name="username"
 							render={({ field }) => (
 								<FormItem>
@@ -83,7 +126,7 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 						/>
 
 						<FormField
-							control={form.control}
+							control={formSignIn.control}
 							name="password"
 							render={({ field }) => (
 								<FormItem>
@@ -112,5 +155,94 @@ export const AuthForm = ({ type = "sign-in" }: Props) => {
 		);
 	}
 
-	return <div>auth-form</div>;
+	return (
+		<Form {...formSignUp}>
+			<form
+				onSubmit={formSignUp.handleSubmit(handleSubmitSignUp)}
+				className="grid grid-cols-1 gap-y-6"
+			>
+				<div className="space-y-4">
+					<FormField
+						control={formSignUp.control}
+						name="name"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Name" type="text" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={formSignUp.control}
+						name="username"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Username</FormLabel>
+								<FormControl>
+									<Input placeholder="Username" type="text" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={formSignUp.control}
+						name="email"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Email</FormLabel>
+								<FormControl>
+									<Input placeholder="Email" type="email" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={formSignUp.control}
+						name="password"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Password</FormLabel>
+								<FormControl>
+									<Input placeholder="********" type="password" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={formSignUp.control}
+						name="confirmPassword"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Confirm Password</FormLabel>
+								<FormControl>
+									<Input placeholder="********" type="password" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<Button type="submit" size="lg" className="w-full" disabled={loading}>
+					{loading ? (
+						<>
+							<Loader2Icon className="mr-2 size-4 animate-spin" /> Signing in...
+						</>
+					) : (
+						"Sign In"
+					)}
+				</Button>
+			</form>
+		</Form>
+	);
 };
