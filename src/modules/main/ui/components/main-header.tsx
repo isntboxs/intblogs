@@ -1,9 +1,12 @@
 import Link from "next/link";
 
+import { getSessionAction } from "@/actions/get-session-action";
 import { BoxsIcon } from "@/components/global/boxs-icon";
-import { MainUserButtonsHeader } from "@/modules/main/ui/components/main-user-buttons-header";
+import { MainNavHeader } from "@/modules/main/ui/components/main-nav-header";
 
-export const MainHeader = () => {
+export const MainHeader = async () => {
+	const session = await getSessionAction();
+
 	return (
 		<header className="bg-background/50 supports-[backdrop-filter]:bg-background/50 fixed top-0 z-50 h-14 w-full border-b backdrop-blur-sm">
 			<div className="container flex h-full max-w-7xl items-center justify-between p-4">
@@ -14,9 +17,7 @@ export const MainHeader = () => {
 					</Link>
 				</div>
 
-				<div className="flex items-center gap-2">
-					<MainUserButtonsHeader />
-				</div>
+				<MainNavHeader session={session} />
 			</div>
 		</header>
 	);
