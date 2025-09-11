@@ -1,11 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { BoxsIcon } from "@/components/global/boxs-icon";
 import { Separator } from "@/components/ui/separator";
 import { AuthForm } from "@/modules/auth/ui/components/auth-form";
 import { AuthSocialButtons } from "@/modules/auth/ui/components/auth-social-buttons";
+import { getCallbackUrl } from "@/utils/get-callback-url";
 
 export const SignUpView = () => {
+	const params = useSearchParams();
+	const callbackUrl = getCallbackUrl(params);
+	const hasCallbackUrl = params.has("callbackUrl");
+
 	return (
 		<>
 			{/* Header */}
@@ -34,7 +42,7 @@ export const SignUpView = () => {
 				</div>
 
 				{/* Form */}
-				<AuthForm type="sign-up" />
+				<AuthForm type="sign-up" callbackUrl={callbackUrl} />
 
 				<p className="text-muted-foreground text-center text-xs italic">
 					By signing up, you agree to our{" "}
@@ -71,7 +79,11 @@ export const SignUpView = () => {
 				<p className="text-muted-foreground text-center text-sm">
 					Already have an account?{" "}
 					<Link
-						href="/sign-in"
+						href={
+							hasCallbackUrl
+								? `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`
+								: "/sign-in"
+						}
 						className="text-primary hover:text-primary/80 transition-all duration-300 ease-in-out"
 					>
 						Sign in

@@ -1,11 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { BoxsIcon } from "@/components/global/boxs-icon";
 import { Separator } from "@/components/ui/separator";
 import { AuthForm } from "@/modules/auth/ui/components/auth-form";
 import { AuthSocialButtons } from "@/modules/auth/ui/components/auth-social-buttons";
+import { getCallbackUrl } from "@/utils/get-callback-url";
 
 export const SignInView = () => {
+	const params = useSearchParams();
+	const callbackUrl = getCallbackUrl(params);
+	const hasCallbackUrl = params.has("callbackUrl");
+
 	return (
 		<>
 			{/* Header */}
@@ -34,7 +42,7 @@ export const SignInView = () => {
 				</div>
 
 				{/* Form */}
-				<AuthForm />
+				<AuthForm type="sign-in" callbackUrl={callbackUrl} />
 
 				<p className="text-muted-foreground text-center text-xs italic">
 					By continuing, you agree to our{" "}
@@ -71,7 +79,11 @@ export const SignInView = () => {
 				<p className="text-muted-foreground text-center text-sm">
 					New to isntblogs?{" "}
 					<Link
-						href="/sign-up"
+						href={
+							hasCallbackUrl
+								? `/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
+								: "/sign-up"
+						}
 						className="text-primary hover:text-primary/80 transition-all duration-300 ease-in-out"
 					>
 						Create an account

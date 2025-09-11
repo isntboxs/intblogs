@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getSessionAction } from "@/actions/get-session-action";
+import { AUTH_ROUTES } from "@/constants/routes";
 
 /**
  * Middleware that enforces authentication-related routing rules.
@@ -14,8 +15,13 @@ import { getSessionAction } from "@/actions/get-session-action";
  *
  * @returns A NextResponse that either redirects to an appropriate route or calls `NextResponse.next()` to continue processing.
  */
+
 export async function middleware(req: NextRequest) {
 	const { pathname } = req.nextUrl;
+
+	const isAuthRoute = AUTH_ROUTES.some(
+		(route) => pathname.startsWith(route) || pathname.startsWith(`${route}/`)
+	);
 
 	const session = await getSessionAction();
 
@@ -34,7 +40,7 @@ export async function middleware(req: NextRequest) {
 		}
 
 		// If user has username and trying to access auth pages
-		if (user.username && pathname.startsWith("/sign-in")) {
+		if (user.username && isAuthRoute) {
 			return NextResponse.redirect(new URL("/", req.url));
 		}
 	}
