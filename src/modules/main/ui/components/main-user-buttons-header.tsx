@@ -1,57 +1,36 @@
-"use client";
-
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { LogOutIcon } from "lucide-react";
 
 import { GeneratedAvatar } from "@/components/global/generated-avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { type Session } from "@/lib/auth";
 import { authClient } from "@/lib/auth/client";
 
-type User = typeof authClient.$Infer.Session.user;
-
-export const MainUserButtonsHeader = () => {
-	const { data: session, isPending } = authClient.useSession();
-
-	if (isPending) {
-		return (
-			<nav className="flex items-center gap-2">
-				{Array.from({ length: 2 }).map((_, index) => (
-					<Skeleton key={index} className="h-9 w-16 rounded-md" />
-				))}
-			</nav>
-		);
-	}
-
-	if (!session) {
-		return (
-			<nav className="flex items-center gap-2">
-				<Button variant="ghost" asChild>
-					<Link href="/sign-in">Sign in</Link>
-				</Button>
-
-				<Button variant="outline" asChild>
-					<Link href="/sign-up">Sign up</Link>
-				</Button>
-			</nav>
-		);
-	}
-
-	return <UserButton user={session.user} />;
-};
-
-const UserButton = ({ user }: { user: User }) => {
+export const MainUserButtonsHeader = ({ user }: { user: Session["user"] }) => {
 	const router = useRouter();
+
+	const isMobile = useIsMobile();
 
 	const handleSignOut = async () => {
 		await authClient.signOut({
@@ -63,6 +42,72 @@ const UserButton = ({ user }: { user: User }) => {
 		});
 	};
 
+	if (isMobile) {
+		return (
+			<Drawer>
+				<DrawerTrigger asChild>
+					<Button variant="ghost" size="icon" className="rounded-full">
+						{!user.image ? (
+							<GeneratedAvatar
+								seed={user.username!}
+								style="notionistsNeutral"
+							/>
+						) : (
+							<Avatar>
+								<AvatarImage src={user.image} alt={user.username!} />
+								<AvatarFallback className="uppercase">
+									{user.username!.charAt(0)}
+								</AvatarFallback>
+							</Avatar>
+						)}
+					</Button>
+				</DrawerTrigger>
+				<DrawerContent>
+					<DrawerHeader>
+						<div className="flex items-center gap-2">
+							{!user.image ? (
+								<GeneratedAvatar
+									seed={user.username!}
+									style="notionistsNeutral"
+									className="rounded-lg"
+								/>
+							) : (
+								<Avatar className="rounded-lg">
+									<AvatarImage src={user.image} alt={user.username!} />
+									<AvatarFallback className="rounded-lg uppercase">
+										{user.username!.charAt(0)}
+									</AvatarFallback>
+								</Avatar>
+							)}
+
+							<div className="grid flex-1 text-left text-sm leading-tight">
+								<DrawerTitle className="truncate font-semibold">
+									{user.name}
+								</DrawerTitle>
+								<DrawerDescription className="truncate text-xs">
+									@{user.username}
+								</DrawerDescription>
+							</div>
+						</div>
+					</DrawerHeader>
+
+					<DrawerFooter>
+						<DrawerClose asChild>
+							<Button
+								variant="default"
+								onClick={handleSignOut}
+								className="w-full"
+							>
+								<LogOutIcon />
+								Sign out
+							</Button>
+						</DrawerClose>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
+		);
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -73,7 +118,7 @@ const UserButton = ({ user }: { user: User }) => {
 						<Avatar>
 							<AvatarImage src={user.image} alt={user.username!} />
 							<AvatarFallback className="uppercase">
-								{user.username!.slice(0, 2)}
+								{user.username!.charAt(0)}
 							</AvatarFallback>
 						</Avatar>
 					)}
@@ -96,7 +141,7 @@ const UserButton = ({ user }: { user: User }) => {
 						<Avatar className="rounded-lg">
 							<AvatarImage src={user.image} alt={user.username!} />
 							<AvatarFallback className="rounded-lg uppercase">
-								{user.username!.slice(0, 2)}
+								{user.username!.charAt(0)}
 							</AvatarFallback>
 						</Avatar>
 					)}
@@ -110,8 +155,8 @@ const UserButton = ({ user }: { user: User }) => {
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={handleSignOut}>
-					Log out
-					<DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+					<LogOutIcon className="size-4" />
+					Sign Out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
