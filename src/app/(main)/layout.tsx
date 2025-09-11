@@ -6,9 +6,12 @@ export default function MainLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<>
+		<div className="min-h-svh">
 			<MainHeader />
-			<main className="pt-16">{children}</main>
-		</>
+
+			<main className="py-14">
+				<div className="container w-full max-w-7xl p-4">{children}</div>
+			</main>
+		</div>
 	);
 }
