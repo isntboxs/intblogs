@@ -19,7 +19,9 @@ import { AUTH_ROUTES } from "@/constants/routes";
 export async function middleware(req: NextRequest) {
 	const { pathname } = req.nextUrl;
 
-	const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+	const isAuthRoute = AUTH_ROUTES.some(
+		(route) => pathname.startsWith(route) || pathname.startsWith(`${route}/`)
+	);
 
 	const session = await getSessionAction();
 

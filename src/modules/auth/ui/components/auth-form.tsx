@@ -146,9 +146,9 @@ export const AuthForm = ({ type = "sign-in", callbackUrl }: Props) => {
 						type="submit"
 						size="lg"
 						className="w-full"
-						disabled={isPending}
+						disabled={isPending || formSignIn.formState.isSubmitting}
 					>
-						{isPending ? (
+						{isPending || formSignIn.formState.isSubmitting ? (
 							<>
 								<Loader2Icon className="mr-2 size-4 animate-spin" /> Signing
 								in...
@@ -240,8 +240,13 @@ export const AuthForm = ({ type = "sign-in", callbackUrl }: Props) => {
 					/>
 				</div>
 
-				<Button type="submit" size="lg" className="w-full" disabled={isPending}>
-					{isPending ? (
+				<Button
+					type="submit"
+					size="lg"
+					className="w-full"
+					disabled={isPending || formSignUp.formState.isSubmitting}
+				>
+					{isPending || formSignUp.formState.isSubmitting ? (
 						<>
 							<Loader2Icon className="size-4 animate-spin" /> Signing up...
 						</>

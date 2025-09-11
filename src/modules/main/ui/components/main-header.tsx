@@ -5,7 +5,7 @@ import { MainUserButtonsHeader } from "@/modules/main/ui/components/main-user-bu
 
 export const MainHeader = () => {
 	return (
-		<header className="bg-background fixed top-0 z-50 h-14 w-full border-b">
+		<header className="bg-background/50 supports-[backdrop-filter]:bg-background/50 fixed top-0 z-50 h-14 w-full border-b backdrop-blur-sm">
 			<div className="container flex h-full max-w-7xl items-center justify-between p-4">
 				<div className="flex items-center gap-2">
 					<Link href="/">

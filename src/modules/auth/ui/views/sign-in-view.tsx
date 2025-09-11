@@ -11,6 +11,7 @@ import { getCallbackUrl } from "@/utils/get-callback-url";
 
 export const SignInView = () => {
 	const params = useSearchParams();
+	const callbackUrl = getCallbackUrl(params);
 	const hasCallbackUrl = params.has("callbackUrl");
 
 	return (
@@ -41,7 +42,7 @@ export const SignInView = () => {
 				</div>
 
 				{/* Form */}
-				<AuthForm type="sign-in" callbackUrl={getCallbackUrl(params)} />
+				<AuthForm type="sign-in" callbackUrl={callbackUrl} />
 
 				<p className="text-muted-foreground text-center text-xs italic">
 					By continuing, you agree to our{" "}
@@ -80,7 +81,7 @@ export const SignInView = () => {
 					<Link
 						href={
 							hasCallbackUrl
-								? `/sign-up?callbackUrl=${encodeURIComponent(getCallbackUrl(params))}`
+								? `/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
 								: "/sign-up"
 						}
 						className="text-primary hover:text-primary/80 transition-all duration-300 ease-in-out"
