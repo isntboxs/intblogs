@@ -57,6 +57,7 @@ export const MarkdownEditorToolbar = ({
 							variant="ghost"
 							size="icon"
 							onClick={handleBold}
+							onMouseDown={(e) => e.preventDefault()}
 							className="h-8 w-8"
 							type="button"
 						>
@@ -73,6 +74,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleItalic}
 							className="h-8 w-8"
 							type="button"
@@ -90,6 +92,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleStrikethrough}
 							className="h-8 w-8"
 							type="button"
@@ -112,6 +115,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleHeading}
 							className="h-8 w-8"
 							type="button"
@@ -129,6 +133,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleUnorderedList}
 							className="h-8 w-8"
 							type="button"
@@ -146,6 +151,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleOrderedList}
 							className="h-8 w-8"
 							type="button"
@@ -168,6 +174,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleCode}
 							className="h-8 w-8"
 							type="button"
@@ -185,6 +192,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleCodeBlock}
 							className="h-8 w-8"
 							type="button"
@@ -202,6 +210,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleBlockquote}
 							className="h-8 w-8"
 							type="button"
@@ -224,6 +233,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleLink}
 							className="h-8 w-8"
 							type="button"
@@ -241,6 +251,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleImage}
 							className="h-8 w-8"
 							type="button"
@@ -264,6 +275,7 @@ export const MarkdownEditorToolbar = ({
 						<Button
 							variant="ghost"
 							size="icon"
+							onMouseDown={(e) => e.preventDefault()}
 							className="h-8 w-8"
 							type="button"
 						>

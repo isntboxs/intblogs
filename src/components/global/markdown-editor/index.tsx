@@ -15,7 +15,7 @@ interface MarkdownEditorProps {
 export const MarkdownEditor = forwardRef<
 	HTMLTextAreaElement,
 	MarkdownEditorProps
->(({ value, onChange, placeholder, disabled }, ref) => {
+>(({ value = "", onChange, placeholder, disabled }, ref) => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleHeading = () => {
@@ -26,9 +26,9 @@ export const MarkdownEditor = forwardRef<
 
 		if (start !== end) {
 			// Selected text - wrap with # for heading 1
-			const selected = value!.slice(start, end);
+			const selected = value.slice(start, end);
 			const newText =
-				value!.slice(0, start) + "# " + selected + value!.slice(end);
+				value.slice(0, start) + "# " + selected + value.slice(end);
 			onChange?.(newText);
 
 			// Set cursor after the inserted text
@@ -41,12 +41,12 @@ export const MarkdownEditor = forwardRef<
 			});
 		} else {
 			// No selection - apply to current line
-			const before = value!.slice(0, start);
-			const after = value!.slice(start);
+			const before = value.slice(0, start);
+			const after = value.slice(start);
 			const lineStart = before.lastIndexOf("\n") + 1;
 			const lineEnd = after.indexOf("\n");
-			const lineEndIndex = lineEnd === -1 ? value!.length : lineStart + lineEnd;
-			const line = value!.slice(lineStart, lineEndIndex);
+			const lineEndIndex = lineEnd === -1 ? value.length : lineStart + lineEnd;
+			const line = value.slice(lineStart, lineEndIndex);
 
 			const match = /^(#{1,6})\s/.exec(line);
 			let newLevel = 1;
@@ -61,7 +61,7 @@ export const MarkdownEditor = forwardRef<
 			const newHeading = "#".repeat(newLevel) + " ";
 			const newLine = line.replace(/^#{0,6}\s*/, newHeading);
 			const newText =
-				value!.slice(0, lineStart) + newLine + value!.slice(lineEndIndex);
+				value.slice(0, lineStart) + newLine + value.slice(lineEndIndex);
 			onChange?.(newText);
 
 			// Set cursor at end of heading
@@ -75,6 +75,7 @@ export const MarkdownEditor = forwardRef<
 		}
 	};
 
+	// Bold toggle (if cursor is inside bold formatting, remove it; otherwise add it)
 	const handleBold = () => {
 		if (!textareaRef.current) return;
 
@@ -82,29 +83,62 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
-			const newText =
-				value!.slice(0, start) + "**" + selected + "**" + value!.slice(end);
+			// Ada selection (existing logic works fine)
+			const selected = value.slice(start, end);
+			const beforeSelection = value.slice(Math.max(0, start - 2), start);
+			const afterSelection = value.slice(end, end + 2);
+
+			let newText;
+			let newCursorPos;
+
+			if (beforeSelection === "**" && afterSelection === "**") {
+				newText = value.slice(0, start - 2) + selected + value.slice(end + 2);
+				newCursorPos = { start: start - 2, end: end - 2 };
+			} else {
+				newText =
+					value.slice(0, start) + "**" + selected + "**" + value.slice(end);
+				newCursorPos = { start: start + 2, end: end + 2 };
+			}
+
 			onChange?.(newText);
 
 			setTimeout(() => {
 				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 2 + selected.length + 2;
+					textareaRef.current.setSelectionRange(
+						newCursorPos.start,
+						newCursorPos.end
+					);
 					textareaRef.current.focus();
 				}
-			});
+			}, 0);
 		} else {
-			const newText = value!.slice(0, start) + "****" + value!.slice(start);
-			onChange?.(newText);
+			// No selection - CHECK if cursor is inside empty bold formatting
+			const beforeCursor = value.slice(Math.max(0, start - 2), start);
+			const afterCursor = value.slice(start, start + 2);
 
-			setTimeout(() => {
-				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 2;
-					textareaRef.current.focus();
-				}
-			});
+			if (beforeCursor === "**" && afterCursor === "**") {
+				// Remove empty bold: **|** → |
+				const newText = value.slice(0, start - 2) + value.slice(start + 2);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start - 2, start - 2);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			} else {
+				// Add empty bold: | → **|**
+				const newText = value.slice(0, start) + "****" + value.slice(start);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start + 2, start + 2);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			}
 		}
 	};
 
@@ -115,29 +149,64 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
-			const newText =
-				value!.slice(0, start) + "*" + selected + "*" + value!.slice(end);
+			// Has selection
+			const selected = value.slice(start, end);
+			const beforeSelection = value.slice(Math.max(0, start - 1), start);
+			const afterSelection = value.slice(end, end + 1);
+
+			let newText;
+			let newCursorPos;
+
+			if (beforeSelection === "*" && afterSelection === "*") {
+				// Remove italic
+				newText = value.slice(0, start - 1) + selected + value.slice(end + 1);
+				newCursorPos = { start: start - 1, end: end - 1 };
+			} else {
+				// Add italic
+				newText =
+					value.slice(0, start) + "*" + selected + "*" + value.slice(end);
+				newCursorPos = { start: start + 1, end: end + 1 };
+			}
+
 			onChange?.(newText);
 
 			setTimeout(() => {
 				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 1 + selected.length + 1;
+					textareaRef.current.setSelectionRange(
+						newCursorPos.start,
+						newCursorPos.end
+					);
 					textareaRef.current.focus();
 				}
-			});
+			}, 0);
 		} else {
-			const newText = value!.slice(0, start) + "**" + value!.slice(start);
-			onChange?.(newText);
+			// No selection - check if cursor is inside empty formatting
+			const beforeCursor = value.slice(Math.max(0, start - 1), start);
+			const afterCursor = value.slice(start, start + 1);
 
-			setTimeout(() => {
-				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 1;
-					textareaRef.current.focus();
-				}
-			});
+			if (beforeCursor === "*" && afterCursor === "*") {
+				// Remove empty italic
+				const newText = value.slice(0, start - 1) + value.slice(start + 1);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start - 1, start - 1);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			} else {
+				// Add empty italic
+				const newText = value.slice(0, start) + "**" + value.slice(start);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start + 1, start + 1);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			}
 		}
 	};
 
@@ -148,29 +217,64 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
-			const newText =
-				value!.slice(0, start) + "~~" + selected + "~~" + value!.slice(end);
+			// Has selection
+			const selected = value.slice(start, end);
+			const beforeSelection = value.slice(Math.max(0, start - 2), start);
+			const afterSelection = value.slice(end, end + 2);
+
+			let newText;
+			let newCursorPos;
+
+			if (beforeSelection === "~~" && afterSelection === "~~") {
+				// Remove strikethrough
+				newText = value.slice(0, start - 2) + selected + value.slice(end + 2);
+				newCursorPos = { start: start - 2, end: end - 2 };
+			} else {
+				// Add strikethrough
+				newText =
+					value.slice(0, start) + "~~" + selected + "~~" + value.slice(end);
+				newCursorPos = { start: start + 2, end: end + 2 };
+			}
+
 			onChange?.(newText);
 
 			setTimeout(() => {
 				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 2 + selected.length + 2;
+					textareaRef.current.setSelectionRange(
+						newCursorPos.start,
+						newCursorPos.end
+					);
 					textareaRef.current.focus();
 				}
-			});
+			}, 0);
 		} else {
-			const newText = value!.slice(0, start) + "~~~~" + value!.slice(start);
-			onChange?.(newText);
+			// No selection - check if cursor is inside empty formatting
+			const beforeCursor = value.slice(Math.max(0, start - 2), start);
+			const afterCursor = value.slice(start, start + 2);
 
-			setTimeout(() => {
-				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 2;
-					textareaRef.current.focus();
-				}
-			});
+			if (beforeCursor === "~~" && afterCursor === "~~") {
+				// Remove empty strikethrough
+				const newText = value.slice(0, start - 2) + value.slice(start + 2);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start - 2, start - 2);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			} else {
+				// Add empty strikethrough
+				const newText = value.slice(0, start) + "~~~~" + value.slice(start);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start + 2, start + 2);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			}
 		}
 	};
 
@@ -181,29 +285,64 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
-			const newText =
-				value!.slice(0, start) + "`" + selected + "`" + value!.slice(end);
+			// Has selection
+			const selected = value.slice(start, end);
+			const beforeSelection = value.slice(Math.max(0, start - 1), start);
+			const afterSelection = value.slice(end, end + 1);
+
+			let newText;
+			let newCursorPos;
+
+			if (beforeSelection === "`" && afterSelection === "`") {
+				// Remove code
+				newText = value.slice(0, start - 1) + selected + value.slice(end + 1);
+				newCursorPos = { start: start - 1, end: end - 1 };
+			} else {
+				// Add code
+				newText =
+					value.slice(0, start) + "`" + selected + "`" + value.slice(end);
+				newCursorPos = { start: start + 1, end: end + 1 };
+			}
+
 			onChange?.(newText);
 
 			setTimeout(() => {
 				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 1 + selected.length + 1;
+					textareaRef.current.setSelectionRange(
+						newCursorPos.start,
+						newCursorPos.end
+					);
 					textareaRef.current.focus();
 				}
-			});
+			}, 0);
 		} else {
-			const newText = value!.slice(0, start) + "``" + value!.slice(start);
-			onChange?.(newText);
+			// No selection - check if cursor is inside empty formatting
+			const beforeCursor = value.slice(Math.max(0, start - 1), start);
+			const afterCursor = value.slice(start, start + 1);
 
-			setTimeout(() => {
-				if (textareaRef.current) {
-					textareaRef.current.selectionStart =
-						textareaRef.current.selectionEnd = start + 1;
-					textareaRef.current.focus();
-				}
-			});
+			if (beforeCursor === "`" && afterCursor === "`") {
+				// Remove empty code
+				const newText = value.slice(0, start - 1) + value.slice(start + 1);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start - 1, start - 1);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			} else {
+				// Add empty code
+				const newText = value.slice(0, start) + "``" + value.slice(start);
+				onChange?.(newText);
+
+				setTimeout(() => {
+					if (textareaRef.current) {
+						textareaRef.current.setSelectionRange(start + 1, start + 1);
+						textareaRef.current.focus();
+					}
+				}, 0);
+			}
 		}
 	};
 
@@ -214,13 +353,9 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
+			const selected = value.slice(start, end);
 			const newText =
-				value!.slice(0, start) +
-				"```\n" +
-				selected +
-				"\n```" +
-				value!.slice(end);
+				value.slice(0, start) + "```\n" + selected + "\n```" + value.slice(end);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -231,8 +366,7 @@ export const MarkdownEditor = forwardRef<
 				}
 			});
 		} else {
-			const newText =
-				value!.slice(0, start) + "```\n\n```" + value!.slice(start);
+			const newText = value.slice(0, start) + "```\n\n```" + value.slice(start);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -249,16 +383,16 @@ export const MarkdownEditor = forwardRef<
 		if (!textareaRef.current) return;
 
 		const start = textareaRef.current.selectionStart;
-		const before = value!.slice(0, start);
-		const after = value!.slice(start);
+		const before = value.slice(0, start);
+		const after = value.slice(start);
 		const lineStart = before.lastIndexOf("\n") + 1;
 		const lineEnd = after.indexOf("\n");
-		const lineEndIndex = lineEnd === -1 ? value!.length : lineStart + lineEnd;
-		const line = value!.slice(lineStart, lineEndIndex);
+		const lineEndIndex = lineEnd === -1 ? value.length : lineStart + lineEnd;
+		const line = value.slice(lineStart, lineEndIndex);
 
 		const newLine = line.replace(/^(\s*)([-*]\s)?/, "$1- ");
 		const newText =
-			value!.slice(0, lineStart) + newLine + value!.slice(lineEndIndex);
+			value.slice(0, lineStart) + newLine + value.slice(lineEndIndex);
 		onChange?.(newText);
 
 		setTimeout(() => {
@@ -274,16 +408,16 @@ export const MarkdownEditor = forwardRef<
 		if (!textareaRef.current) return;
 
 		const start = textareaRef.current.selectionStart;
-		const before = value!.slice(0, start);
-		const after = value!.slice(start);
+		const before = value.slice(0, start);
+		const after = value.slice(start);
 		const lineStart = before.lastIndexOf("\n") + 1;
 		const lineEnd = after.indexOf("\n");
-		const lineEndIndex = lineEnd === -1 ? value!.length : lineStart + lineEnd;
-		const line = value!.slice(lineStart, lineEndIndex);
+		const lineEndIndex = lineEnd === -1 ? value.length : lineStart + lineEnd;
+		const line = value.slice(lineStart, lineEndIndex);
 
 		const newLine = line.replace(/^(\s*)(\d+\.\s)?/, "$11. ");
 		const newText =
-			value!.slice(0, lineStart) + newLine + value!.slice(lineEndIndex);
+			value.slice(0, lineStart) + newLine + value.slice(lineEndIndex);
 		onChange?.(newText);
 
 		setTimeout(() => {
@@ -302,9 +436,9 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
+			const selected = value.slice(start, end);
 			const newText =
-				value!.slice(0, start) + "[" + selected + "](url)" + value!.slice(end);
+				value.slice(0, start) + "[" + selected + "](url)" + value.slice(end);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -316,7 +450,7 @@ export const MarkdownEditor = forwardRef<
 			});
 		} else {
 			const newText =
-				value!.slice(0, start) + "[text](url)" + value!.slice(start);
+				value.slice(0, start) + "[text](url)" + value.slice(start);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -336,9 +470,9 @@ export const MarkdownEditor = forwardRef<
 		const end = textareaRef.current.selectionEnd;
 
 		if (start !== end) {
-			const selected = value!.slice(start, end);
+			const selected = value.slice(start, end);
 			const newText =
-				value!.slice(0, start) + "![" + selected + "](url)" + value!.slice(end);
+				value.slice(0, start) + "![" + selected + "](url)" + value.slice(end);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -350,7 +484,7 @@ export const MarkdownEditor = forwardRef<
 			});
 		} else {
 			const newText =
-				value!.slice(0, start) + "![alt](url)" + value!.slice(start);
+				value.slice(0, start) + "![alt](url)" + value.slice(start);
 			onChange?.(newText);
 
 			setTimeout(() => {
@@ -367,16 +501,16 @@ export const MarkdownEditor = forwardRef<
 		if (!textareaRef.current) return;
 
 		const start = textareaRef.current.selectionStart;
-		const before = value!.slice(0, start);
-		const after = value!.slice(start);
+		const before = value.slice(0, start);
+		const after = value.slice(start);
 		const lineStart = before.lastIndexOf("\n") + 1;
 		const lineEnd = after.indexOf("\n");
-		const lineEndIndex = lineEnd === -1 ? value!.length : lineStart + lineEnd;
-		const line = value!.slice(lineStart, lineEndIndex);
+		const lineEndIndex = lineEnd === -1 ? value.length : lineStart + lineEnd;
+		const line = value.slice(lineStart, lineEndIndex);
 
 		const newLine = line.replace(/^(\s*)(>\s)?/, "$1> ");
 		const newText =
-			value!.slice(0, lineStart) + newLine + value!.slice(lineEndIndex);
+			value.slice(0, lineStart) + newLine + value.slice(lineEndIndex);
 		onChange?.(newText);
 
 		setTimeout(() => {
