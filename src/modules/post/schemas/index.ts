@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 
 export const postInsertSchema = z.object({
 	title: z
@@ -14,3 +14,9 @@ export const postInsertSchema = z.object({
 });
 
 export type PostInsertSchema = z.infer<typeof postInsertSchema>;
+
+export const postUpdateSchema = postInsertSchema.extend({
+	id: z.string().min(1, { message: "Post ID is required" }),
+});
+
+export type PostUpdateSchema = z.infer<typeof postUpdateSchema>;

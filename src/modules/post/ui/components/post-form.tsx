@@ -1,7 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { MarkdownEditor } from "@/components/global/markdown-editor";
 import { Button } from "@/components/ui/button";
@@ -14,23 +18,60 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { orpc } from "@/lib/orpc/client";
 import {
 	postInsertSchema,
 	type PostInsertSchema,
 } from "@/modules/post/schemas";
+import { type PostGetOne } from "@/modules/post/types";
 
-export const PostForm = () => {
+interface Props {
+	initialValues?: PostGetOne;
+}
+
+export const PostForm = ({ initialValues }: Props) => {
+	const router = useRouter();
+
+	const queryClient = useQueryClient();
+
+	const createPost = useMutation(
+		orpc.post.create.mutationOptions({
+			onSuccess: async (data) => {
+				await queryClient.invalidateQueries(orpc.post.getMany.queryOptions());
+
+				toast.success("Post created successfully", {
+					description: "Your post has been created successfully.",
+				});
+
+				router.push(`/post/${data.id}`);
+			},
+
+			onError: (error) => {
+				toast.error("Failed to create post", {
+					description: error.message,
+				});
+			},
+		})
+	);
+
 	const form = useForm<PostInsertSchema>({
 		resolver: zodResolver(postInsertSchema),
 		defaultValues: {
-			title: "",
-			content: "",
+			title: initialValues?.title ?? "",
+			content: initialValues?.content ?? "",
 		},
 		mode: "onChange",
 	});
 
+	const isEdit = !!initialValues;
+	const isPending = createPost.isPending;
+
 	const handleSubmit = (data: PostInsertSchema) => {
-		console.log(data);
+		if (isEdit) {
+			// TODO: Update post
+		} else {
+			createPost.mutate(data);
+		}
 	};
 
 	return (
@@ -70,8 +111,13 @@ export const PostForm = () => {
 						/>
 					</div>
 
-					<Button type="submit" disabled={form.formState.isSubmitting}>
-						{form.formState.isSubmitting ? "Submitting..." : "Submit"}
+					<Button
+						type="submit"
+						disabled={form.formState.isSubmitting || isPending}
+					>
+						{form.formState.isSubmitting || isPending
+							? "Submitting..."
+							: "Submit"}
 					</Button>
 				</form>
 			</Form>

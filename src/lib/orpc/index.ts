@@ -20,7 +20,7 @@ type Context = Awaited<ReturnType<typeof createORPCContext>>;
 export const o = os.$context<Context>();
 
 const authMiddleware = o.middleware(async ({ context, next }) => {
-	if (!context.session) {
+	if (!context.session?.session || !context.session?.user) {
 		throw new ORPCError("UNAUTHORIZED", {
 			message: "You are not authenticated",
 			cause: "You are not authenticated",

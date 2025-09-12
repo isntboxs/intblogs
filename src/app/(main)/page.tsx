@@ -9,7 +9,7 @@ import { PostHomeView } from "@/modules/post/ui/views/post-home-view";
 
 export default async function HomePage() {
 	const queryClient = getQueryClient();
-	void queryClient.prefetchQuery(orpc.privateData.queryOptions());
+	await queryClient.prefetchQuery(orpc.post.getMany.queryOptions());
 
 	return (
 		<HydrateClient client={queryClient}>
