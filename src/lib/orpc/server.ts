@@ -9,13 +9,11 @@ import { createORPCContext } from "@/lib/orpc";
 import { appRouter } from "@/lib/orpc/routers";
 import { createQueryClient } from "@/lib/query/client";
 
-const createContext = cache(async () => {
+const createContext = async () => {
 	const heads = new Headers(await headers());
 
-	return createORPCContext({
-		headers: heads,
-	});
-});
+	return createORPCContext({ headers: heads });
+};
 
 globalThis.$client = createRouterClient(appRouter, {
 	context: createContext,

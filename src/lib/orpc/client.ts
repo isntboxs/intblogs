@@ -11,6 +11,14 @@ declare global {
 
 export const link = new RPCLink({
 	url: env.NEXT_PUBLIC_APP_URL + "/rpc",
+
+	fetch(url, options) {
+		return fetch(url, {
+			...options,
+			credentials: "include",
+		});
+	},
+
 	headers: async () => {
 		if (typeof window !== "undefined") {
 			return {};

@@ -10,8 +10,26 @@ const serializer = new StandardRPCJsonSerializer({
 	customJsonSerializers: [],
 });
 
-export const createQueryClient = () =>
-	new QueryClient({
+export const createQueryClient = () => {
+	// eslint-disable-next-line prefer-const
+	let client: QueryClient;
+
+	const queryCache = new QueryCache({
+		onError: (error) => {
+			toast.error(`Oops! Something went wrong`, {
+				action: {
+					label: "retry",
+					onClick: () => {
+						void client.invalidateQueries();
+					},
+				},
+
+				description: error.message,
+			});
+		},
+	});
+
+	client = new QueryClient({
 		defaultOptions: {
 			queries: {
 				queryKeyHashFn(queryKey) {
@@ -23,7 +41,7 @@ export const createQueryClient = () =>
 
 			dehydrate: {
 				shouldDehydrateQuery: (query) =>
-					defaultShouldDehydrateQuery(query) ??
+					defaultShouldDehydrateQuery(query) ||
 					query.state.status === "pending",
 				serializeData(data) {
 					const [json, meta] = serializer.serialize(data);
@@ -38,18 +56,8 @@ export const createQueryClient = () =>
 			},
 		},
 
-		queryCache: new QueryCache({
-			onError: (error) => {
-				toast.error(`Oops! Something went wrong`, {
-					action: {
-						label: "retry",
-						onClick: () => {
-							void createQueryClient().invalidateQueries();
-						},
-					},
-
-					description: error.message,
-				});
-			},
-		}),
+		queryCache,
 	});
+
+	return client;
+};
