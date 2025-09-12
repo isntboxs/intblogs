@@ -2,6 +2,8 @@ import {
 	Bold,
 	Code,
 	Code2,
+	EyeIcon,
+	FileTextIcon,
 	Heading,
 	ImageIcon,
 	InfoIcon,
@@ -10,6 +12,7 @@ import {
 	List,
 	ListOrdered,
 	Quote,
+	SplitIcon,
 	Strikethrough,
 } from "lucide-react";
 
@@ -33,6 +36,8 @@ interface MarkdownEditorToolbarProps {
 	handleLink: () => void;
 	handleImage: () => void;
 	handleBlockquote: () => void;
+	viewMode?: "editor" | "preview" | "split";
+	onViewModeChange?: (mode: "editor" | "preview" | "split") => void;
 }
 
 export const MarkdownEditorToolbar = ({
@@ -47,6 +52,8 @@ export const MarkdownEditorToolbar = ({
 	handleLink,
 	handleImage,
 	handleBlockquote,
+	viewMode = "editor",
+	onViewModeChange,
 }: MarkdownEditorToolbarProps) => {
 	return (
 		<div className="flex items-center gap-1 rounded-md rounded-b-none border-b p-2">
@@ -265,7 +272,7 @@ export const MarkdownEditorToolbar = ({
 				</Tooltip>
 			</div>
 
-			<div className="flex items-center gap-2 sm:ml-auto">
+			<div className="flex w-full items-center gap-2 sm:ml-auto sm:w-fit">
 				<span className="text-muted-foreground not-sr-only text-sm font-medium sm:sr-only">
 					Markdown Editor
 				</span>
@@ -286,6 +293,68 @@ export const MarkdownEditorToolbar = ({
 						<p>Markdown Help</p>
 					</TooltipContent>
 				</Tooltip>
+
+				<Separator
+					orientation="vertical"
+					className="hidden data-[orientation=vertical]:h-6 sm:block"
+				/>
+
+				{/* View Mode Buttons */}
+				{onViewModeChange && (
+					<div className="ml-auto flex items-center gap-1 sm:ml-0">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant={viewMode === "editor" ? "default" : "ghost"}
+									size="sm"
+									onClick={() => onViewModeChange("editor")}
+									aria-label="Editor Mode"
+								>
+									<FileTextIcon className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Editor</p>
+							</TooltipContent>
+						</Tooltip>
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant={viewMode === "preview" ? "default" : "ghost"}
+									size="sm"
+									onClick={() => onViewModeChange("preview")}
+									aria-label="Preview Mode"
+								>
+									<EyeIcon className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Preview</p>
+							</TooltipContent>
+						</Tooltip>
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant={viewMode === "split" ? "default" : "ghost"}
+									size="sm"
+									onClick={() => onViewModeChange("split")}
+									aria-label="Split Mode"
+									className="hidden sm:block"
+								>
+									<SplitIcon className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Split View</p>
+							</TooltipContent>
+						</Tooltip>
+					</div>
+				)}
 			</div>
 		</div>
 	);
