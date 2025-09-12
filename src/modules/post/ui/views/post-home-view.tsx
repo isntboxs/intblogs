@@ -5,7 +5,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/client";
 
 export const PostHomeView = () => {
-	const { data } = useSuspenseQuery(orpc.privateData.queryOptions());
+	const { data } = useSuspenseQuery(orpc.post.getMany.queryOptions());
 
 	return (
 		<div>
