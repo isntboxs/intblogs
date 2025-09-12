@@ -1,42 +1,23 @@
-"use client";
+import { Suspense } from "react";
 
-import { useRouter } from "next/navigation";
+import { ErrorBoundary } from "react-error-boundary";
 
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth/client";
+import { orpc } from "@/lib/orpc/client";
+import { getQueryClient } from "@/lib/orpc/server";
+import { HydrateClient } from "@/lib/query/hydration";
+import { PostHomeView } from "@/modules/post/ui/views/post-home-view";
 
-/**
- * Client-side Home page component that conditionally shows a logout action.
- *
- * If an active session exists (from authClient.useSession), renders a "Logout"
- * button that calls authClient.signOut and, on successful sign-out, navigates
- * to "/sign-in". If there is no session, renders a simple "HomePage" placeholder.
- *
- * @returns The component's JSX output.
- */
-export default function HomePage() {
-	const router = useRouter();
+export default async function HomePage() {
+	const queryClient = getQueryClient();
+	void queryClient.prefetchQuery(orpc.privateData.queryOptions());
 
-	const { data: session } = authClient.useSession();
-
-	if (session) {
-		return (
-			<>
-				<Button
-					onClick={() =>
-						authClient.signOut({
-							fetchOptions: {
-								onSuccess: () => {
-									router.push("/sign-in");
-								},
-							},
-						})
-					}
-				>
-					Logout
-				</Button>
-			</>
-		);
-	}
-	return <div>HomePage</div>;
+	return (
+		<HydrateClient client={queryClient}>
+			<Suspense fallback={<div>Loading...</div>}>
+				<ErrorBoundary fallback={<div>Something went wrong</div>}>
+					<PostHomeView />
+				</ErrorBoundary>
+			</Suspense>
+		</HydrateClient>
+	);
 }
