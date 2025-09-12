@@ -1,9 +1,13 @@
 "use client";
 
-import { forwardRef, useRef } from "react";
+import { forwardRef, useRef, useState } from "react";
 
 import { MarkdownEditorToolbar } from "@/components/global/markdown-editor/toolbar";
 import { Textarea } from "@/components/ui/textarea";
+
+import { MarkdownRenderer } from "../markdown-renderer";
+
+type ViewMode = "editor" | "preview" | "split";
 
 interface MarkdownEditorProps {
 	value?: string;
@@ -17,6 +21,7 @@ export const MarkdownEditor = forwardRef<
 	MarkdownEditorProps
 >(({ value = "", onChange, placeholder, disabled }, ref) => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>("editor");
 
 	const handleHeading = () => {
 		if (!textareaRef.current) return;
@@ -523,23 +528,57 @@ export const MarkdownEditor = forwardRef<
 	};
 
 	const renderEditorContent = () => {
-		return (
-			<>
-				<Textarea
-					ref={(el) => {
-						textareaRef.current = el;
-						if (typeof ref === "function") ref(el);
-						else if (ref) ref.current = el;
-					}}
-					value={value}
-					onChange={(e) => onChange?.(e.target.value)}
-					placeholder={placeholder}
-					disabled={disabled}
-					rows={10}
-					className="rounded-t-none border-none p-2"
-				/>
-			</>
-		);
+		switch (viewMode) {
+			case "editor":
+				return (
+					<>
+						<Textarea
+							ref={(el) => {
+								textareaRef.current = el;
+								if (typeof ref === "function") ref(el);
+								else if (ref) ref.current = el;
+							}}
+							value={value}
+							onChange={(e) => onChange?.(e.target.value)}
+							placeholder={placeholder}
+							disabled={disabled}
+							className="min-h-[16rem] rounded-t-none border-none p-4"
+						/>
+					</>
+				);
+
+			case "preview":
+				return (
+					<div className="grid max-h-[32rem] min-h-[16rem] grid-cols-1 overflow-y-auto p-4">
+						<MarkdownRenderer content={value} />
+					</div>
+				);
+
+			case "split":
+				return (
+					<div className="grid grid-cols-2">
+						<Textarea
+							ref={(el) => {
+								textareaRef.current = el;
+								if (typeof ref === "function") ref(el);
+								else if (ref) ref.current = el;
+							}}
+							value={value}
+							onChange={(e) => onChange?.(e.target.value)}
+							placeholder={placeholder}
+							disabled={disabled}
+							className="min-h-[16rem] rounded-t-none border-none p-4"
+						/>
+
+						<div className="grid max-h-[32rem] min-h-[16rem] grid-cols-1 overflow-y-auto p-4">
+							<MarkdownRenderer content={value} />
+						</div>
+					</div>
+				);
+
+			default:
+				return null;
+		}
 	};
 
 	return (
@@ -556,6 +595,8 @@ export const MarkdownEditor = forwardRef<
 				handleLink={handleLink}
 				handleImage={handleImage}
 				handleBlockquote={handleBlockquote}
+				viewMode={viewMode}
+				onViewModeChange={setViewMode}
 			/>
 
 			{renderEditorContent()}
