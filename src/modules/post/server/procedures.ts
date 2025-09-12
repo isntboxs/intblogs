@@ -1,3 +1,4 @@
+import { ORPCError } from "@orpc/client";
 import z from "zod";
 
 import { protectedProcedure, publicProcedure } from "@/lib/orpc";
@@ -13,14 +14,18 @@ export const postRouter = {
 	getOne: publicProcedure
 		.input(z.string())
 		.handler(async ({ input, context }) => {
-			const { session } = context;
-
 			const post = await context.db.post.findUnique({
 				where: {
 					id: input,
-					authorId: session ? session.user.id : undefined,
 				},
 			});
+
+			if (!post) {
+				throw new ORPCError("NOT_FOUND", {
+					cause: "Post not found",
+					message: "Post not found",
+				});
+			}
 
 			return post;
 		}),
@@ -45,6 +50,27 @@ export const postRouter = {
 		.input(postUpdateSchema)
 		.handler(async ({ input, context }) => {
 			const { id, title, content } = input;
+
+			const existingPost = await context.db.post.findUnique({
+				where: {
+					id,
+					authorId: context.auth.user.id,
+				},
+			});
+
+			if (!existingPost) {
+				throw new ORPCError("NOT_FOUND", {
+					cause: "Post not found",
+					message: "Post not found",
+				});
+			}
+
+			if (existingPost.authorId !== context.auth.user.id) {
+				throw new ORPCError("FORBIDDEN", {
+					cause: "You are not authorized to update this post",
+					message: "You are not authorized to update this post",
+				});
+			}
 
 			const updatedPost = await context.db.post.update({
 				where: {

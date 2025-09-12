@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +55,26 @@ export const PostForm = ({ initialValues }: Props) => {
 		})
 	);
 
+	const updatePost = useMutation(
+		orpc.post.update.mutationOptions({
+			onSuccess: async (data) => {
+				await queryClient.invalidateQueries(orpc.post.getMany.queryOptions());
+
+				toast.success("Post updated successfully", {
+					description: "Your post has been updated successfully.",
+				});
+
+				router.push(`/post/${data.id}`);
+			},
+
+			onError: (error) => {
+				toast.error("Failed to update post", {
+					description: error.message,
+				});
+			},
+		})
+	);
+
 	const form = useForm<PostInsertSchema>({
 		resolver: zodResolver(postInsertSchema),
 		defaultValues: {
@@ -64,15 +85,21 @@ export const PostForm = ({ initialValues }: Props) => {
 	});
 
 	const isEdit = !!initialValues;
-	const isPending = createPost.isPending;
+	const isPending = createPost.isPending || updatePost.isPending;
 
 	const handleSubmit = (data: PostInsertSchema) => {
 		if (isEdit) {
-			// TODO: Update post
+			updatePost.mutate({ id: initialValues.id, ...data });
 		} else {
 			createPost.mutate(data);
 		}
 	};
+
+	useEffect(() => {
+		if (initialValues) {
+			form.reset(initialValues);
+		}
+	}, [form, initialValues]);
 
 	return (
 		<>
